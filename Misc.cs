@@ -2,11 +2,6 @@ using UnityEngine;
 
 namespace Uzu
 {
-	// ***************************
-	// TODO: Cleanup!!
-	//	- unify interfaces and remove platform-specific code from Cy
-	// ***************************
-
 	/// <summary>
 	/// Miscellaneous services interfaces.
 	/// </summary>
@@ -56,7 +51,7 @@ namespace Uzu
 			Application.OpenURL("mailto:" + url + "?subject=" + subject + "&body=" + body);
 #endif
 		}
-		
+
 		public static void ShowWebpage (string url, bool showControls)
 		{
 #if UNITY_IPHONE
@@ -66,30 +61,85 @@ namespace Uzu
 			Application.OpenURL(url);
 #endif
 		}
-		
-		public static void ShowAlert (string title, string message, string[] buttons)
-		{
-#if UNITY_IPHONE
-			EtceteraBinding.showAlertWithTitleMessageAndButtons(title, message, buttons);
-#endif // UNITY_IPHONE
 
-			//TODO .. Well the interface is diferent between the two plugin we use for Alert
-			//I'll like to fix that but fist let make android work, and fix both Version
+		/// <summary>
+		/// Shows an alert dialog, triggering the callback
+		/// after the user makes a decision.
+		/// Callback passes the button name as a parameter.
+		/// </summary>
+		public static void ShowAlert (string title, string message, string yes, string no, System.Action <string> callback)
+		{
+			new AlertDialog (title, message, yes, no, callback);
+		}
 
-		}
-		
-		public static void RegisterAlertButtonClickedEvent (System.Action<string> eventFunction)
+		#region Implementation.
+		private class AlertDialog
 		{
+			private string _yesString;
+			private string _noString;
+			private System.Action <string> _userCallback = null;
+
+			public AlertDialog (string title, string message, string yes, string no, System.Action <string> callback)
+			{
+#if UNITY_EDITOR
+				// Do nothing.
+#elif UNITY_IPHONE
+				_userCallback = callback;
+
+				EtceteraManager.alertButtonClickedEvent += EventListenerCallbackImpl;
+
+				{
+					string[] buttons = { yes, no };
+					EtceteraBinding.showAlertWithTitleMessageAndButtons(title, message, buttons);
+				}
+#elif UNITY_ANDROID
+				_yesString = yes;
+				_noString = no;
+				_userCallback = callback;
+
+				AndroidDialog dialog = AndroidDialog.Create(title, message, yes, no);
+				dialog.addEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
+#endif
+			}
+
 #if UNITY_IPHONE
-			EtceteraManager.alertButtonClickedEvent += eventFunction;
-#endif // UNITY_IPHONE
+			private void EventListenerCallbackImpl (string buttonName)
+			{
+				// Remove listener.
+				EtceteraManager.alertButtonClickedEvent -= EventListenerCallbackImpl;
+
+				if (_userCallback != null) {
+					_userCallback (buttonName);
+				}
+			}
+#elif UNITY_ANDROID
+			private void EventListenerCallbackImpl (CEvent e)
+			{
+				// Remove listener.
+				(e.dispatcher as AndroidDialog).removeEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
+
+				if (_userCallback != null) {
+					string callbackStr = string.Empty;
+
+					switch ((AndroidDialogResult)e.data) {
+					case AndroidDialogResult.YES:
+						callbackStr = _yesString;
+						break;
+					case AndroidDialogResult.NO:
+						callbackStr = _noString;
+						break;		
+					}
+
+					if (!string.IsNullOrEmpty (callbackStr)) {
+						_userCallback (callbackStr);
+					}
+					else {
+						Debug.LogWarning ("Unhandled dialog result.");
+					}
+				}
+			}
+#endif
 		}
-		
-		public static void UnregisterAlertButtonClickedEvent (System.Action<string> eventFunction)
-		{
-#if UNITY_IPHONE
-			EtceteraManager.alertButtonClickedEvent -= eventFunction;
-#endif // UNITY_IPHONE
-		}
+		#endregion
 	}
 }
