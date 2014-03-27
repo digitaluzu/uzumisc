@@ -75,8 +75,8 @@ namespace Uzu
 		#region Implementation.
 		private class AlertDialog
 		{
-			private string _yesString;
-			private string _noString;
+			private string _yesString = null;
+			private string _noString = null;
 			private System.Action <string> _userCallback = null;
 
 			public AlertDialog (string title, string message, string yes, string no, System.Action <string> callback)
