@@ -82,7 +82,7 @@ namespace Uzu
 			public AlertDialog (string title, string message, string yes, string no, System.Action <string> callback)
 			{
 #if UNITY_EDITOR
-				UiDlgBox.Instance.Show(title,message,yes,no,callback);	
+				// Do nothing.
 #elif UNITY_IPHONE
 				_userCallback = callback;
 
@@ -92,9 +92,6 @@ namespace Uzu
 					string[] buttons = { yes, no };
 					EtceteraBinding.showAlertWithTitleMessageAndButtons(title, message, buttons);
 				}
-				
-#elif UZU_GAMESTICK
-				UiDlgBox.Instance.Show(title,message,yes,no,callback);		
 #elif UNITY_ANDROID
 				_yesString = yes;
 				_noString = no;
