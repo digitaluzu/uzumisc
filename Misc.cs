@@ -35,7 +35,10 @@ namespace Uzu
 #elif UNITY_IPHONE
 			return EtceteraBinding.isEmailAvailable();
 #elif UNITY_ANDROID
-			//We don't use any plugin in android so alwayse return true.
+			//We don't use any plugin in android so always return true.
+			return true;
+#elif UNITY_WP8
+			//We don't use any plugin in wp8 so always return true.
 			return true;
 #else
 			#error Unhandled platform.
