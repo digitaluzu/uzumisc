@@ -12,10 +12,12 @@ namespace Uzu
 		/// </summary>
 		public static void AskForReview (string message, string appId)
 		{
+			#pragma warning disable 168
 			const string title = "Rate Us";
 			const string yes = "Rate";
 			const string later = "Later";
 			const string no = "No Thanks";
+			#pragma warning restore 168
 
 #if UNITY_IPHONE
 			IOSRateUsPopUp.Create (title, message, yes, later, no);
