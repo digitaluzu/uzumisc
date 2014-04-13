@@ -12,57 +12,28 @@ namespace Uzu
 		/// </summary>
 		public static void AskForReview (string message, string appId)
 		{
-#if UNITY_IPHONE
-			const string title = "Rate This App";
-			EtceteraBinding.askForReview (title, message, appId);
-#elif UNITY_ANDROID
 			const string title = "Rate Us";
-			string url = "http://play.google.com/store/apps/details?id=" + appId;
 			const string yes = "Rate";
 			const string later = "Later";
 			const string no = "No Thanks";
+
+#if UNITY_IPHONE
+			IOSRateUsPopUp.Create (title, message, yes, later, no);
+#elif UNITY_ANDROID
+			string url = "http://play.google.com/store/apps/details?id=" + appId;
+
 			AndroidRateUsPopUp.Create (title, message, url, yes, later, no);
 #endif
 		}
 
-		/// <summary>
-		/// Is an email application set up properly on this device?
-		/// </summary>
-		public static bool IsMailAvailable ()
-		{
-#if UNITY_EDITOR
-			return false;
-#elif UNITY_IPHONE
-			return EtceteraBinding.isEmailAvailable();
-#elif UNITY_ANDROID
-			//We don't use any plugin in android so always return true.
-			return true;
-#elif UNITY_WP8
-			//We don't use any plugin in wp8 so always return true.
-			return true;
-#else
-			#error Unhandled platform.
-#endif // UNITY_IPHONE
-		}
-
 		public static void ShowMailComposer (string url, string subject, string body, bool isHTML)
 		{
-#if UNITY_IPHONE
-			EtceteraBinding.showMailComposer(url, subject, body, isHTML);
-#else // UNITY_IPHONE
-			//By default use OpenURL it should work on any platform
 			Application.OpenURL("mailto:" + url + "?subject=" + subject + "&body=" + body);
-#endif
 		}
 
 		public static void ShowWebpage (string url, bool showControls)
 		{
-#if UNITY_IPHONE
-			EtceteraBinding.showWebPage(url, showControls);	
-#else 
-			//By default use OpenURL it should work on any platform
 			Application.OpenURL(url);
-#endif
 		}
 
 		/// <summary>
@@ -87,14 +58,12 @@ namespace Uzu
 #if UNITY_EDITOR
 				// Do nothing.
 #elif UNITY_IPHONE
+				_yesString = yes;
+				_noString = no;
 				_userCallback = callback;
 
-				EtceteraManager.alertButtonClickedEvent += EventListenerCallbackImpl;
-
-				{
-					string[] buttons = { yes, no };
-					EtceteraBinding.showAlertWithTitleMessageAndButtons(title, message, buttons);
-				}
+				IOSDialog dialog = IOSDialog.Create (title, message, yes, no);
+				dialog.addEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
 #elif UNITY_ANDROID
 				_yesString = yes;
 				_noString = no;
@@ -106,13 +75,20 @@ namespace Uzu
 			}
 
 #if UNITY_IPHONE
-			private void EventListenerCallbackImpl (string buttonName)
+			private void EventListenerCallbackImpl (CEvent e)
 			{
 				// Remove listener.
-				EtceteraManager.alertButtonClickedEvent -= EventListenerCallbackImpl;
+				(e.dispatcher as IOSDialog).removeEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
 
 				if (_userCallback != null) {
-					_userCallback (buttonName);
+					switch ((IOSDialogResult)e.data) {
+					case IOSDialogResult.YES:
+						_userCallback (_yesString);
+						break;
+					case IOSDialogResult.NO:
+						_userCallback (_noString);
+						break;
+					}
 				}
 			}
 #elif UNITY_ANDROID
@@ -122,22 +98,13 @@ namespace Uzu
 				(e.dispatcher as AndroidDialog).removeEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
 
 				if (_userCallback != null) {
-					string callbackStr = string.Empty;
-
 					switch ((AndroidDialogResult)e.data) {
 					case AndroidDialogResult.YES:
-						callbackStr = _yesString;
+						_userCallback (_yesString);
 						break;
 					case AndroidDialogResult.NO:
-						callbackStr = _noString;
+						_userCallback (_noString);
 						break;		
-					}
-
-					if (!string.IsNullOrEmpty (callbackStr)) {
-						_userCallback (callbackStr);
-					}
-					else {
-						Debug.LogWarning ("Unhandled dialog result.");
 					}
 				}
 			}
