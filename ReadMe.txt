@@ -17,4 +17,4 @@ iOS:
 		- v3.0+
 Android:
 	- Android Native Plugin: https://www.assetstore.unity3d.com/#/content/10825
-		- v?.?+
+		- v2.5+
