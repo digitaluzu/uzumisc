@@ -64,7 +64,9 @@ namespace Uzu
 				_noString = no;
 				_userCallback = callback;
 
-				IOSDialog dialog = IOSDialog.Create (title, message, yes, no);
+				// TODO: iOS Native Plugin order is currently incorrect. Bug report submitted.
+				//IOSDialog dialog = IOSDialog.Create (title, message, yes, no);
+				IOSDialog dialog = IOSDialog.Create (title, message, no, yes);
 				dialog.addEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
 #elif UNITY_ANDROID
 				_yesString = yes;
