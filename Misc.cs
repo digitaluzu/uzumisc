@@ -60,13 +60,14 @@ namespace Uzu
 #if UNITY_EDITOR
 				// Do nothing.
 #elif UNITY_IPHONE
-				_yesString = yes;
-				_noString = no;
+				// TODO: iOS Native Plugin order is currently incorrect. Bug report submitted.
+				_yesString = no;
+				_noString = yes;
+				//_yesString = yes;
+				//_noString = no;
 				_userCallback = callback;
 
-				// TODO: iOS Native Plugin order is currently incorrect. Bug report submitted.
-				//IOSDialog dialog = IOSDialog.Create (title, message, yes, no);
-				IOSDialog dialog = IOSDialog.Create (title, message, no, yes);
+				IOSDialog dialog = IOSDialog.Create (title, message, yes, no);
 				dialog.addEventListener (BaseEvent.COMPLETE, EventListenerCallbackImpl);
 #elif UNITY_ANDROID
 				_yesString = yes;
