@@ -51,9 +51,12 @@ namespace Uzu
 		#region Implementation.
 		private class AlertDialog
 		{
+			// Prevent 'unused variable' warning.
+			#pragma warning disable 414
 			private string _yesString = null;
 			private string _noString = null;
 			private System.Action <string> _userCallback = null;
+			#pragma warning restore 414
 
 			public AlertDialog (string title, string message, string yes, string no, System.Action <string> callback)
 			{
