@@ -28,9 +28,14 @@ namespace Uzu
 #endif
 		}
 
+		public static string EscapeURL (string url)
+		{
+			return WWW.EscapeURL(url).Replace("+","%20");
+		}
+
 		public static void ShowMailComposer (string url, string subject, string body, bool isHTML)
 		{
-			Application.OpenURL("mailto:" + url + "?subject=" + subject + "&body=" + body);
+			Application.OpenURL("mailto:" + url + "?subject=" + EscapeURL(subject) + "&body=" + EscapeURL(body));
 		}
 
 		public static void ShowWebpage (string url, bool showControls)
